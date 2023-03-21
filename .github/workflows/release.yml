@@ -6,16 +6,16 @@ on:
             - "*"
 
 env:
-    PLUGIN_NAME: tor2e-adversary-plugin # Change this to match the id of your plugin.
+    PLUGIN_NAME: tor2e-adversary-plugin
 
 jobs:
     build:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v3
             - name: Use Node.js
-              uses: actions/setup-node@v1
+              uses: actions/setup-node@v3
               with:
                   node-version: "18.x"
 
@@ -29,14 +29,13 @@ jobs:
                   zip -r ${{ env.PLUGIN_NAME }}.zip ${{ env.PLUGIN_NAME }}
                   ls                  
 
-            - name: Create Release
-              id: create_release
-              uses: "marvinpinto/action-automatic-releases@latest"
+            - name: Release
+              id: release
+              uses: " softprops/action-gh-release@v0.1.15"
               with:
                 repo_token: "${{ secrets.GITHUB_TOKEN }}"
-                automatic_release_tag: "latest"
                 prerelease: true
-                title: "${{ github.ref }}"
+                fail_on_unmatched_files: true
                 files: |
                   *.zip
                   main.js
