@@ -1,40 +1,80 @@
-import {App, MarkdownRenderChild, MarkdownRenderer, parseLinktext, resolveSubpath} from "obsidian";
+import {App, debounce, MarkdownRenderChild, MarkdownRenderer, parseLinktext, resolveSubpath, TFile} from "obsidian";
 
 export class AdversaryBlockRenderer extends MarkdownRenderChild {
 
-    constructor(readonly app: App, containerEl: HTMLElement, readonly params: any, readonly sourcePath: string) {
+    private readonly usedPaths: Set<string> = new Set<string>()
+
+    constructor(readonly app: App, containerEl: HTMLElement, private sourcePath: string, readonly params: any) {
         super(containerEl)
     }
 
     onload() {
         this.render()
+
+        if (this.usedPaths.size > 0) {
+            this.registerEvent(this.app.metadataCache.on("changed", debounce((file: TFile) => {
+                this.renderIfDependencyChanged(file.path);
+            }).bind(this)))
+
+            this.registerEvent(this.app.vault.on("rename", debounce((file: TFile, oldPath: string) => {
+                this.sourcePath = file.path
+                this.renderIfDependencyChanged(oldPath)
+            }).bind(this)))
+        }
+    }
+
+
+    renderIfDependencyChanged(changedPath: string) {
+        if (this.usedPaths.has(changedPath)) {
+            this.render()
+        }
     }
 
     render() {
+        this.usedPaths.clear()
+        const data = this.getCodeblockData()
+        this.containerEl.querySelector(".tor2e-adversary")?.remove()
         const root = this.containerEl.createDiv({cls: "tor2e-adversary"})
 
-        if (this.params.name) {
-            let headerLevel: string = this.params["render-header-level"] || "h1"
+        if (data.name) {
+            let headerLevel: string = data["render-header-level"] || "h1"
             if (!headerLevel.toString().startsWith("h")) {
                 headerLevel = "h" + headerLevel
             }
 
-            root.createEl(headerLevel as keyof HTMLElementTagNameMap, {text: this.params.name, cls: "name"})
+            root.createEl(headerLevel as keyof HTMLElementTagNameMap, {text: data.name, cls: "name"})
         }
 
-        if (Array.isArray(this.params.distinctive_features)) {
-            root.createEl("p", {text: this.params.distinctive_features.join(", "), cls: "distinctive-features"})
-        } else if (this.params.distinctive_features) {
-            root.createEl("p", {text: this.params.distinctive_features, cls: "distinctive-features"})
+        if (Array.isArray(data.distinctive_features)) {
+            root.createEl("p", {text: data.distinctive_features.join(", "), cls: "distinctive-features"})
+        } else if (data.distinctive_features) {
+            root.createEl("p", {text: data.distinctive_features, cls: "distinctive-features"})
         }
 
-        this.renderCharacteristicsSection(root)
-        this.renderCombatProficienciesSection(root)
-        this.renderFellAbilitiesSection(root)
+        this.renderCharacteristicsSection(root, data)
+        this.renderCombatProficienciesSection(root, data)
+        this.renderFellAbilitiesSection(root, data)
     }
 
+    private getCodeblockData() {
+        if (this.params.data == "frontmatter") {
+            this.usedPaths.add(this.sourcePath)
+            return {...app.metadataCache.getCache(this.sourcePath)?.frontmatter, ...this.params}
 
-    private renderCharacteristicsSection(root: HTMLElement) {
+        } else if (this.params.data) {
+            const linkText = parseLinktext(this.params.data.replace("[[", "").replace("]]", ""))
+            const dest = this.app.metadataCache.getFirstLinkpathDest(linkText.path, this.sourcePath)
+
+            if (dest) {
+                this.usedPaths.add(dest.path)
+                return {...app.metadataCache.getFileCache(dest)?.frontmatter, ...this.params}
+            }
+        }
+
+        return this.params
+    }
+
+    private renderCharacteristicsSection(root: HTMLElement, data: any) {
         const table = root.createEl("table", {cls: "characteristics"});
         const section = table.createEl("tbody")
         const headers = section.createEl("tr")
@@ -42,31 +82,31 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
 
 
         headers.createEl("th", {text: "Endurance", cls: "endurance"})
-        values.createEl("td", {text: this.params.endurance || "-", cls: "endurance"})
+        values.createEl("td", {text: data.endurance || "-", cls: "endurance"})
         headers.createEl("th", {text: "Might", cls: "might"})
-        values.createEl("td", {text: this.params.might || "-", cls: "might"})
+        values.createEl("td", {text: data.might || "-", cls: "might"})
 
-        if (this.params.resolve) {
+        if (data.resolve) {
             headers.createEl("th", {text: "Resolve", cls: "resolve"})
-            values.createEl("td", {text: this.params.resolve, cls: "resolve"})
+            values.createEl("td", {text: data.resolve, cls: "resolve"})
         } else {
             headers.createEl("th", {text: "Hate", cls: "hate"})
-            values.createEl("td", {text: this.params.hate || "-", cls: "hate"})
+            values.createEl("td", {text: data.hate || "-", cls: "hate"})
         }
 
         headers.createEl("th", {text: "Parry", cls: "parry"})
-        values.createEl("td", {text: this.params.parry || "-", cls: "parry"})
+        values.createEl("td", {text: data.parry || "-", cls: "parry"})
         headers.createEl("th", {text: "Armour", cls: "armour"})
-        values.createEl("td", {text: this.params.armour || "-", cls: "armour"})
+        values.createEl("td", {text: data.armour || "-", cls: "armour"})
         headers.createEl("th", {text: "Attribute level", cls: "attribute-level"})
-        values.createEl("td", {text: this.params.attribute_level || "-", cls: "attribute-level"})
+        values.createEl("td", {text: data.attribute_level || "-", cls: "attribute-level"})
     }
 
-    private renderCombatProficienciesSection(root: HTMLElement) {
-        if (Array.isArray(this.params.combat_proficiencies) && this.params.combat_proficiencies.length > 0) {
-            const ul = root.createEl("p",{cls: "combat-proficiencies"})
+    private renderCombatProficienciesSection(root: HTMLElement, data: any) {
+        if (Array.isArray(data.combat_proficiencies) && data.combat_proficiencies.length > 0) {
+            const ul = root.createEl("p", {cls: "combat-proficiencies"})
             ul.createEl("strong", {text: "Combat proficiencies: ", cls: "caption"})
-            this.params.combat_proficiencies.forEach((element: any, i: number) => {
+            data.combat_proficiencies.forEach((element: any, i: number) => {
                 const li = ul.createSpan({cls: "combat-proficiency"})
 
                 li.createSpan({text: element.name, cls: "name"})
@@ -93,7 +133,7 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
                 }
 
                 li.createSpan({text: ")"})
-                if (i < this.params.combat_proficiencies.length - 1) {
+                if (i < data.combat_proficiencies.length - 1) {
                     li.createSpan({text: ", "})
                 }
             })
@@ -129,10 +169,10 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
         }
     }
 
-    private renderFellAbilitiesSection(root: HTMLElement) {
-        if (Array.isArray(this.params.fell_abilities) && this.params.fell_abilities.length > 0) {
+    private renderFellAbilitiesSection(root: HTMLElement, data: any) {
+        if (Array.isArray(data.fell_abilities) && data.fell_abilities.length > 0) {
 
-            this.params.fell_abilities.forEach((ability: any) => {
+            data.fell_abilities.forEach((ability: any) => {
                     if (ability.name || ability.description || ability.embed) {
                         const p = root.createEl("p", {cls: "fell-ability"})
 
@@ -159,6 +199,7 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
         if (dest) {
             const fileCache = this.app.metadataCache.getFileCache(dest);
             if (fileCache) {
+                this.usedPaths.add(dest.path)
                 const resolved = resolveSubpath(fileCache, linkText.subpath)
                 const embed = p.createSpan({cls: "embed"})
 

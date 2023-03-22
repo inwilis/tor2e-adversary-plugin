@@ -118,9 +118,3 @@ This usecase also supports overridden attributes:
 data: "[[My adversary]]"
 name: Different name
 ````
-
-## Known issues
-
-- When using frontmatter as a data source, codeblock will not reflect the changes to the frontmatter immediately. After switching to another page and back, all changes will be rendered correctly.
-- When using frontmatter from another page as a data source, **sometimes** after editing the frontmatter and navigating to the codeblock page all values in a block will be rendered as empty. After switching to another page and back, all changes will be rendered correctly.
-- When embedding Fell ability description, **sometimes** after editing the description and navigating to the page that embeds it, description is not rendered. . After switching to another page and back, all changes will be rendered correctly. This issue can also be avoided by pressing "Ctrl+S" after editing.
