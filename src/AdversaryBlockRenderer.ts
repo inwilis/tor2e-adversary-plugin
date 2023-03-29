@@ -45,6 +45,11 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
             root.createEl(headerLevel as keyof HTMLElementTagNameMap, {text: data.name, cls: "name"})
         }
 
+        if (data.description) {
+            const description = root.createEl("p", {cls: "description"});
+            MarkdownRenderer.renderMarkdown(data.description, description, this.sourcePath, this).then(this.unwrapParagraph(description))
+        }
+
         if (Array.isArray(data.distinctive_features)) {
             root.createEl("p", {text: data.distinctive_features.join(", "), cls: "distinctive-features"})
         } else if (data.distinctive_features) {

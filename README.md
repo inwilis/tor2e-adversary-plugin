@@ -9,6 +9,7 @@ Adversary statistics are displayed with the code block of the following structur
 ````
 ```tor2e-adversary
 name: Some name
+description: Some text
 distinctive_features: 
   - Feature A
   - Feature B
