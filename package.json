@@ -1,6 +1,6 @@
 {
 	"name": "tor2e-adversary-plugin",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Renders TOR2e adversary stats.",
 	"main": "main.js",
 	"scripts": {
