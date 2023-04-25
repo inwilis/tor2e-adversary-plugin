@@ -46,16 +46,11 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
         }
 
         if (data.description) {
-            const description = root.createEl("p", {cls: "description"});
+            const description = root.createEl("span", {cls: "description"});
             MarkdownRenderer.renderMarkdown(data.description, description, this.sourcePath, this).then(this.unwrapParagraph(description))
         }
 
-        if (Array.isArray(data.distinctive_features)) {
-            root.createEl("p", {text: data.distinctive_features.join(", "), cls: "distinctive-features"})
-        } else if (data.distinctive_features) {
-            root.createEl("p", {text: data.distinctive_features, cls: "distinctive-features"})
-        }
-
+        this.renderDistinctiveFeatures(root, data)
         this.renderCharacteristicsSection(root, data)
         this.renderCombatProficienciesSection(root, data)
         this.renderFellAbilitiesSection(root, data)
@@ -79,67 +74,75 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
         return this.params
     }
 
+    private renderDistinctiveFeatures(root: HTMLDivElement, data: any) {
+        const features = data.distinctive_features || data.traits
+
+        if (Array.isArray(features)) {
+            root.createEl("span", {text: features.join(", "), cls: "distinctive-features"})
+        } else if (features) {
+            root.createEl("span", {text: features, cls: "distinctive-features"})
+        }
+    }
+
     private renderCharacteristicsSection(root: HTMLElement, data: any) {
         const table = root.createEl("table", {cls: "characteristics"});
         const section = table.createEl("tbody")
         const headers = section.createEl("tr")
         const values = section.createEl("tr")
 
-
-        headers.createEl("th", {text: "Endurance", cls: "endurance"})
-        values.createEl("td", {text: data.endurance || "-", cls: "endurance"})
-        headers.createEl("th", {text: "Might", cls: "might"})
-        values.createEl("td", {text: data.might || "-", cls: "might"})
+        this.renderCharacteristic(headers, values, "Endurance", data.endurance)
+        this.renderCharacteristic(headers, values, "Might", data.might)
 
         if (data.resolve) {
-            headers.createEl("th", {text: "Resolve", cls: "resolve"})
-            values.createEl("td", {text: data.resolve, cls: "resolve"})
+            this.renderCharacteristic(headers, values, "Resolve", data.resolve)
         } else {
-            headers.createEl("th", {text: "Hate", cls: "hate"})
-            values.createEl("td", {text: data.hate || "-", cls: "hate"})
+            this.renderCharacteristic(headers, values, "Hate", data.hate)
         }
 
-        headers.createEl("th", {text: "Parry", cls: "parry"})
-        values.createEl("td", {text: data.parry || "-", cls: "parry"})
-        headers.createEl("th", {text: "Armour", cls: "armour"})
-        values.createEl("td", {text: data.armour || "-", cls: "armour"})
-        headers.createEl("th", {text: "Attribute level", cls: "attribute-level"})
-        values.createEl("td", {text: data.attribute_level || "-", cls: "attribute-level"})
+        this.renderCharacteristic(headers, values, "Parry", data.parry)
+        this.renderCharacteristic(headers, values, "Armour", data.armour)
+        this.renderCharacteristic(headers, values, "Attribute level", data.attribute_level)
+    }
+
+    private renderCharacteristic(headers: HTMLElement, values: HTMLElement, name: string, value: any) {
+        const cls = name.toLowerCase().replace(" ", "-")
+        headers.createEl("th", {text: name, cls: cls})
+        values.createEl("td", {text: value || "-", cls: cls})
     }
 
     private renderCombatProficienciesSection(root: HTMLElement, data: any) {
         if (Array.isArray(data.combat_proficiencies) && data.combat_proficiencies.length > 0) {
-            const ul = root.createEl("p", {cls: "combat-proficiencies"})
-            ul.createEl("strong", {text: "Combat proficiencies: ", cls: "caption"})
+            const proficiencies = root.createEl("span", {cls: "combat-proficiencies"})
+            proficiencies.createEl("strong", {text: "Combat proficiencies: ", cls: "caption"})
             data.combat_proficiencies.forEach((element: any, i: number) => {
-                const li = ul.createSpan({cls: "combat-proficiency"})
+                const proficiency = proficiencies.createSpan({cls: "combat-proficiency"})
 
-                li.createSpan({text: element.name, cls: "name"})
-                li.createSpan({text: " "})
-                li.createSpan({text: element.rating, cls: "rating", title: "Rating: roll vs target's Parry"})
-                li.createSpan({text: " ("})
-                li.createSpan({text: element.damage, cls: "damage", title: "Damage: subtract from target's Endurance"})
-                li.createSpan({text: "/"})
-                li.createSpan({text: element.injury, cls: "injury", title: "Injury: target rolls Armour vs this"})
+                proficiency.createSpan({text: element.name, cls: "name"})
+                proficiency.createSpan({text: " "})
+                proficiency.createSpan({text: element.rating, cls: "rating", title: "Rating: roll vs target's Parry"})
+                proficiency.createSpan({text: " ("})
+                proficiency.createSpan({text: element.damage, cls: "damage", title: "Damage: subtract from target's Endurance"})
+                proficiency.createSpan({text: "/"})
+                proficiency.createSpan({text: element.injury, cls: "injury", title: "Injury: target rolls Armour vs this"})
 
                 if (element.special) {
-                    li.createSpan({text: ", "})
+                    proficiency.createSpan({text: ", "})
 
                     if (Array.isArray(element.special)) {
                         for (let j = 0; j < element.special.length; j++) {
-                            this.renderSpecialDamage(li, element.special[j])
+                            this.renderSpecialDamage(proficiency, element.special[j])
                             if (j < element.special.length - 1) {
-                                li.createSpan({text: ", "})
+                                proficiency.createSpan({text: ", "})
                             }
                         }
                     } else {
-                        this.renderSpecialDamage(li, element.special)
+                        this.renderSpecialDamage(proficiency, element.special)
                     }
                 }
 
-                li.createSpan({text: ")"})
+                proficiency.createSpan({text: ")"})
                 if (i < data.combat_proficiencies.length - 1) {
-                    li.createSpan({text: ", "})
+                    proficiency.createSpan({text: ", "})
                 }
             })
         }
@@ -179,7 +182,7 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
 
             data.fell_abilities.forEach((ability: any) => {
                     if (ability.name || ability.description || ability.embed) {
-                        const p = root.createEl("p", {cls: "fell-ability"})
+                        const p = root.createEl("span", {cls: "fell-ability"})
 
                         if (ability.name) {
                             p.createEl("strong", {text: ability.name + ": ", cls: "name"})
@@ -197,7 +200,7 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
         }
     }
 
-    private embedContent(ability: any, p: HTMLParagraphElement) {
+    private embedContent(ability: any, p: HTMLElement) {
         const linkText = parseLinktext(ability.embed.replace("[[", "").replace("]]", ""))
         const dest = this.app.metadataCache.getFirstLinkpathDest(linkText.path, this.sourcePath)
 
