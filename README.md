@@ -77,12 +77,14 @@ Value of a special damage option can be also an Obsidian link. It must be taken 
 
 ### Fell abilities
 
-Fell ability section can contain a "description:" or "embed:" attribute. If both are present, "description:" will be used.
+Fell ability section can contain a pair of "name:" and "description:" attributes, or "embed:" attribute (with optional "name:"). If both are present, "description:" will be used.
 
 "Description" attribute is expected to contain a text with ability description, and will be rendered as a plain text.
 
 "Embed" attribute is expected to contain an Obsidian link (in quotes). It can be a link to a page, a header within a page, or a block within a page. Plugin will try to take 
-the text of that page or a section of a page, strip it of any headers and render it as a piece of markdown, keeping all formatting.  
+the text of that page or a section of a page, strip it of any headers and render it as a piece of markdown, keeping all formatting. 
+
+"Name" attribute is expected to contain a text with ability name. If it is absent, "embed" will be rendered with a name derived from the link by which it was embedded.
 
 ## Adversary data in page frontmatter
 

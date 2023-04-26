@@ -120,12 +120,21 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
 
                 proficiency.createSpan({text: element.name, cls: "name"})
                 proficiency.createSpan({text: " "})
-                this.tooltip(proficiency.createSpan({text: element.rating, cls: "rating"}), "<span><strong>Rating:</strong> roll vs target's <strong>Parry</strong></span>")
+                this.tooltip(proficiency.createSpan({
+                    text: element.rating,
+                    cls: "rating"
+                }), "<span><strong>Rating:</strong> roll vs target's <strong>Parry</strong></span>")
                 proficiency.createSpan({text: " ("})
-                this.tooltip(proficiency.createSpan({text: element.damage,cls: "damage"}), "<span><strong>Damage:</strong> subtract from target's <strong>Endurance</strong></span>")
+                this.tooltip(proficiency.createSpan({
+                    text: element.damage,
+                    cls: "damage"
+                }), "<span><strong>Damage:</strong> subtract from target's <strong>Endurance</strong></span>")
 
                 proficiency.createSpan({text: "/"})
-                this.tooltip( proficiency.createSpan({text: element.injury,cls: "injury"}),"<span><strong>Injury:</strong> target rolls <strong>Armour</strong> vs this</span>")
+                this.tooltip(proficiency.createSpan({
+                    text: element.injury,
+                    cls: "injury"
+                }), "<span><strong>Injury:</strong> target rolls <strong>Armour</strong> vs this</span>")
 
                 if (element.special) {
                     proficiency.createSpan({text: ", "})
@@ -155,10 +164,10 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
             this.tooltip(root.createEl("span", {cls: "special-predefined", text: "Pierce"}),
                 "<span>The attacker scores a well-aimed strike, modifying the Feat die result of the attack roll by <strong>+2</strong>.</span>")
         } else if (text == "Seize") {
-                this.tooltip(root.createEl("span", { cls: "special-predefined", text: "Seize"}),
+            this.tooltip(root.createEl("span", {cls: "special-predefined", text: "Seize"}),
                 "<span>The attacker holds on to the target — the victim can only fight in a <strong>Forward</strong> stance making <strong>Brawling</strong> attacks. Seized heroes may free themselves by spending <strong>additional success</strong> from attack roll.</span>")
         } else if (text == "Break shield") {
-                this.tooltip(root.createEl("span", {cls: "special-predefined", text: "Break shield"}),
+            this.tooltip(root.createEl("span", {cls: "special-predefined", text: "Break shield"}),
                 "<span>The attack strikes repeatedly at the shield of the targeted Player-hero, smashing it to pieces. The target loses their shield’s <strong>bonus to Parry</strong> (a shield enhanced by Rewards or magical qualities cannot be smashed and thus is not affected).</span>")
 
         } else {
@@ -171,18 +180,15 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
         if (Array.isArray(data.fell_abilities) && data.fell_abilities.length > 0) {
 
             data.fell_abilities.forEach((ability: any) => {
-                    if (ability.name || ability.description || ability.embed) {
+                    if ((ability.name && ability.description) || ability.embed) {
                         const p = root.createEl("span", {cls: "fell-ability"})
 
-                        if (ability.name) {
+                        if (ability.name && ability.description) {
                             p.createEl("strong", {text: ability.name + ": ", cls: "name"})
-                        }
-
-                        if (ability.description) {
                             p.createSpan({text: ability.description, cls: "description"})
 
                         } else if (ability.embed) {
-                            this.embedContent(ability, p);
+                            this.embedContent(ability.name, ability, p);
                         }
                     }
                 }
@@ -190,7 +196,7 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
         }
     }
 
-    private embedContent(ability: any, p: HTMLElement) {
+    private embedContent(name: string | undefined, ability: any, p: HTMLElement) {
         const linkText = parseLinktext(ability.embed.replace("[[", "").replace("]]", ""))
         const dest = this.app.metadataCache.getFirstLinkpathDest(linkText.path, this.sourcePath)
 
@@ -199,6 +205,8 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
             if (fileCache) {
                 this.usedPaths.add(dest.path)
                 const resolved = resolveSubpath(fileCache, linkText.subpath)
+
+                p.createEl("strong", {text: (name || linkText.subpath.replace("#", "")) + ": ", cls: "name"})
                 const embed = p.createSpan({cls: "embed"})
 
                 dest.vault.cachedRead(dest).then(content => {
