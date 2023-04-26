@@ -8,6 +8,8 @@ Adversary statistics are displayed with the code block of the following structur
 
 ````
 ```tor2e-adversary
+render:
+  header: h2
 name: Some name
 description: Some text
 distinctive_features: 
@@ -48,6 +50,12 @@ fell_abilities:
 
 All data in this example is in YAML format. Names of all elements directly correspond to terms from the game. Any value that contain some characters that can be
 confusing to Obsidian can be taken in quotes (for example, parry value of +3 will be rendered as simply 3, but "+3" will be rendered exactly as written).
+
+### Render instructions
+
+Render section contains options to change the look of adversary block.
+
+"Header" attribute changes the level of block heading (h1 by default). It can be specified as "hN" or just "N".
 
 ### Combat proficiencies
 

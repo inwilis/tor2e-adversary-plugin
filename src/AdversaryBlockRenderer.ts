@@ -37,7 +37,7 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
         const root = this.containerEl.createDiv({cls: "tor2e-adversary"})
 
         if (data.name) {
-            let headerLevel: string = data["render-header-level"] || "h1"
+            let headerLevel: string = data.render?.header || "h1"
             if (!headerLevel.toString().startsWith("h")) {
                 headerLevel = "h" + headerLevel
             }

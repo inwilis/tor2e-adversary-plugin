@@ -16,7 +16,7 @@ export default class Tor2ePlugin extends Plugin {
         const params = {...parseYaml(source)}
 
         try {
-            if (!params.render || params.render == "block") {
+            if (params.render?.type || "block"  == "block") {
                 ctx.addChild(new AdversaryBlockRenderer(this.app, el, ctx.sourcePath, params))
             }
 
