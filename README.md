@@ -57,6 +57,13 @@ Render section contains options to change the look of adversary block.
 
 "Header" attribute changes the level of block heading (h1 by default). It can be specified as "hN" or just "N".
 
+### Distinctive features
+
+Both "distinctive_features" and "traits" attributes can be used to specify distinctive features. If both are present,
+"distinctive_features" value is used.
+
+Value of these attributes can be an array or a comma-separated string.
+
 ### Combat proficiencies
 
 Each numeric attribute of combat proficiency, when rendered, will display a hint explaining its purpose on a mouse hover.
