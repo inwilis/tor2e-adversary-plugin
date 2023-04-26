@@ -24,6 +24,4 @@ export default class Tor2ePlugin extends Plugin {
             el.createSpan({text: e, cls: CSS_CLASS_ERROR})
         }
     }
-
-
 }

@@ -1,9 +1,11 @@
+@import "tippy.js/dist/tippy.css";
+
 div.tor2e-adversary {
     display: flex;
     flex-direction: column;
     row-gap: 0.3em;
 
-    > .description{
+    > .description {
         margin-bottom: var(--size-2-2);
     }
 
@@ -24,5 +26,29 @@ div.tor2e-adversary {
         display: flex;
         flex-wrap: wrap;
         column-gap: 0.5ch;
+
+        .with-tooltip {
+            cursor: pointer;
+            text-decoration-line: underline;
+            text-decoration-style: dotted;
+            text-decoration-color: var(--color-base-50);
+            text-decoration-thickness: 1px;
+            text-underline-offset: 2px;
+        }
     }
 }
+
+.tippy-box[data-theme~=tor2e-adversary] {
+
+    > .tippy-content {
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: center;
+        justify-content: center;
+        row-gap: var(--size-2-1);
+        padding: 0.5em 0.7em;
+        text-align: justify;
+        font-size: var(--font-ui-medium);
+    }
+}
+

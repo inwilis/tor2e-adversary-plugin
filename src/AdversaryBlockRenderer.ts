@@ -1,4 +1,5 @@
 import {App, debounce, MarkdownRenderChild, MarkdownRenderer, parseLinktext, resolveSubpath, TFile} from "obsidian";
+import tippy from "tippy.js";
 
 export class AdversaryBlockRenderer extends MarkdownRenderChild {
 
@@ -119,11 +120,12 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
 
                 proficiency.createSpan({text: element.name, cls: "name"})
                 proficiency.createSpan({text: " "})
-                proficiency.createSpan({text: element.rating, cls: "rating", title: "Rating: roll vs target's Parry"})
+                this.tooltip(proficiency.createSpan({text: element.rating, cls: "rating"}), "<span><strong>Rating:</strong> roll vs target's <strong>Parry</strong></span>")
                 proficiency.createSpan({text: " ("})
-                proficiency.createSpan({text: element.damage, cls: "damage", title: "Damage: subtract from target's Endurance"})
+                this.tooltip(proficiency.createSpan({text: element.damage,cls: "damage"}), "<span><strong>Damage:</strong> subtract from target's <strong>Endurance</strong></span>")
+
                 proficiency.createSpan({text: "/"})
-                proficiency.createSpan({text: element.injury, cls: "injury", title: "Injury: target rolls Armour vs this"})
+                this.tooltip( proficiency.createSpan({text: element.injury,cls: "injury"}),"<span><strong>Injury:</strong> target rolls <strong>Armour</strong> vs this</span>")
 
                 if (element.special) {
                     proficiency.createSpan({text: ", "})
@@ -150,26 +152,14 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
 
     private renderSpecialDamage(root: HTMLElement, text: string) {
         if (text == "Pierce") {
-            root.createEl("a", {
-                cls: "special-predefined",
-                text: "Pierce",
-                href: "#",
-                title: "The attacker scores a well-aimed strike, modifying the Feat die result of the attack roll by +2."
-            })
+            this.tooltip(root.createEl("span", {cls: "special-predefined", text: "Pierce"}),
+                "<span>The attacker scores a well-aimed strike, modifying the Feat die result of the attack roll by <strong>+2</strong>.</span>")
         } else if (text == "Seize") {
-            root.createEl("a", {
-                cls: "special-predefined",
-                text: "Seize",
-                href: "#",
-                title: "The attacker holds on to the target — the victim can only fight in a Forward stance making Brawling attacks. Seized heroes may free themselves spending a icon from a successful attack roll."
-            })
+                this.tooltip(root.createEl("span", { cls: "special-predefined", text: "Seize"}),
+                "<span>The attacker holds on to the target — the victim can only fight in a <strong>Forward</strong> stance making <strong>Brawling</strong> attacks. Seized heroes may free themselves by spending <strong>additional success</strong> from attack roll.</span>")
         } else if (text == "Break shield") {
-            root.createEl("a", {
-                cls: "special-predefined",
-                text: "Break shield",
-                href: "#",
-                title: "The attack strikes repeatedly at the shield of the targeted Player-hero, smashing it to pieces. The target loses their shield’s bonus to Parry (a shield enhanced by Rewards or magical qualities cannot be smashed and thus is not affected)."
-            })
+                this.tooltip(root.createEl("span", {cls: "special-predefined", text: "Break shield"}),
+                "<span>The attack strikes repeatedly at the shield of the targeted Player-hero, smashing it to pieces. The target loses their shield’s <strong>bonus to Parry</strong> (a shield enhanced by Rewards or magical qualities cannot be smashed and thus is not affected).</span>")
 
         } else {
             const special = root.createSpan({cls: "special"})
@@ -234,5 +224,17 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
                 paragraph = root.querySelector("p");
             }
         }
+    }
+
+    private tooltip(e: HTMLElement, text: string): HTMLElement {
+        tippy(e, {
+            content: text,
+            theme: "tor2e-adversary",
+            allowHTML: true,
+            // hideOnClick: false,
+            // trigger: 'click'
+        })
+        e.addClass("with-tooltip")
+        return e
     }
 }
