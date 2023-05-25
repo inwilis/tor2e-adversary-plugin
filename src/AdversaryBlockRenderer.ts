@@ -86,10 +86,11 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
     }
 
     private renderCharacteristicsSection(root: HTMLElement, data: any) {
-        const table = root.createEl("table", {cls: "characteristics"});
-        const section = table.createEl("tbody")
-        const headers = section.createEl("tr")
-        const values = section.createEl("tr")
+        const table = root.createEl("table", {cls: "characteristics"})
+        const head = table.createEl("thead")
+        const body = table.createEl("tbody")
+        const headers = head.createEl("tr")
+        const values = body.createEl("tr")
 
         this.renderCharacteristic(headers, values, "Endurance", data.endurance)
         this.renderCharacteristic(headers, values, "Might", data.might)
