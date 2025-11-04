@@ -60,7 +60,7 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
     private getCodeblockData() {
         if (this.params.data == "frontmatter") {
             this.usedPaths.add(this.sourcePath)
-            return {...app.metadataCache.getCache(this.sourcePath)?.frontmatter, ...this.params}
+            return {...this.app.metadataCache.getCache(this.sourcePath)?.frontmatter, ...this.params}
 
         } else if (this.params.data) {
             const linkText = parseLinktext(this.params.data.replace("[[", "").replace("]]", ""))
@@ -68,7 +68,7 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
 
             if (dest) {
                 this.usedPaths.add(dest.path)
-                return {...app.metadataCache.getFileCache(dest)?.frontmatter, ...this.params}
+                return {...this.app.metadataCache.getFileCache(dest)?.frontmatter, ...this.params}
             }
         }
 
@@ -207,19 +207,20 @@ export class AdversaryBlockRenderer extends MarkdownRenderChild {
                 this.usedPaths.add(dest.path)
                 const resolved = resolveSubpath(fileCache, linkText.subpath)
 
-                p.createEl("strong", {text: (name || linkText.subpath.replace("#", "")) + ": ", cls: "name"})
-                const embed = p.createSpan({cls: "embed"})
+                if (resolved) {
+                    p.createEl("strong", {text: (name || linkText.subpath.replace("#", "")) + ": ", cls: "name"})
+                    const embed = p.createSpan({cls: "embed"})
 
-                dest.vault.cachedRead(dest).then(content => {
-                    return content.substring(resolved.start.offset, resolved.end?.offset)
-                        .split(/\n|\r\n/)
-                        .filter(line => !line.includes(linkText.subpath.replace("#", "")))
-                        .join("\n")
+                    dest.vault.cachedRead(dest).then(content => {
+                        return content.substring(resolved.start.offset, resolved.end?.offset)
+                            .split(/\n|\r\n/)
+                            .filter(line => !line.includes(linkText.subpath.replace("#", "")))
+                            .join("\n")
 
-                }).then(contentToRender => {
-                    return MarkdownRenderer.renderMarkdown(contentToRender, embed, this.sourcePath, this)
-                }).then(this.unwrapParagraph(embed))
-
+                    }).then(contentToRender => {
+                        return MarkdownRenderer.renderMarkdown(contentToRender, embed, this.sourcePath, this)
+                    }).then(this.unwrapParagraph(embed))
+                }
             }
         }
     }
